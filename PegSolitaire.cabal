@@ -1,0 +1,32 @@
+cabal-version:        3.0
+name:                 PegSolitaire
+version:              0.1.0.0
+author:               Lars van den Haak
+maintainer:           l.b.v.d.haak@tue.nl
+extra-source-files:   README.md
+
+executable pegsolitaire
+    main-is:          Main.hs
+    build-depends:    base >=4.17.0.0 && < 4.18.0.0,
+                      PegSolitaire,
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
+library
+    exposed-modules:  PegSolitaire
+    build-depends:    base >=4.17.0.0 && < 4.18.0.0,
+    hs-source-dirs:   src
+    default-language: Haskell2010
+    ghc-options:      -Wall
+
+test-suite PegSolitaire-test
+    default-language: Haskell2010
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Spec.hs
+    build-depends:    
+                      base >=4.17.0.0 && < 4.18.0.0,
+                      hspec,
+                      QuickCheck,
+                      PegSolitaire,
+    ghc-options:      -Wall
