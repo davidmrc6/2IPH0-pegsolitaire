@@ -34,6 +34,7 @@ module PegSolitaire
 where
 import Data.List (unfoldr)
 import Data.Maybe
+import Data.Bits (Bits(xor))
 
 data Peg = Empty | Peg deriving (Eq, Ord)
 
@@ -56,7 +57,16 @@ stringToPegs = map f
 
 ----------------------------------
 
-isWinning = error "Implement, document, and test this function"
+isWinning :: Pegs -> Bool
+isWinning [] = False -- handle empty list case
+isWinning [x] = isPeg x -- base case
+isWinning (x:xs) = isPeg x `xor` isWinning xs
+
+isPeg :: Peg -> Bool
+isPeg x = case x of
+    Peg -> True
+    Empty -> False
+
 generateStates = error "Implement, document, and test this function"
 generateLinearStates = error "Implement, document, and test this function"
 

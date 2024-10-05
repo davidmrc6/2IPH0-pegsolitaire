@@ -7,8 +7,17 @@ import PegSolitaire
 main :: IO ()
 main = hspec $ do
   describe "isWinning" $ do
-    it "should have tests" $ do
-          (1 :: Integer) `shouldBe` (1 :: Integer)
+    it "should return False when the current state isn't a winning state" $ do
+          let pegs = [Peg, Empty, Empty, Peg]
+          isWinning pegs `shouldBe` False
+
+    it "should return True when the current state is a winning state" $ do
+          let pegs = [Peg, Empty, Empty, Empty]
+          isWinning pegs `shouldBe` True
+
+    it "should handle the empty list case" $ do
+          let pegs = []
+          isWinning pegs `shouldBe` False
 
   describe "generateStates" $ do
     it "should have tests" $ do
@@ -61,5 +70,3 @@ main = hspec $ do
   describe "getSolution" $ do
     it "should have tests" $ do
           (1 :: Integer) `shouldBe` (1 :: Integer)
-
-
