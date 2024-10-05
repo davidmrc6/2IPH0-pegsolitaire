@@ -1,8 +1,8 @@
 {-|
 Module      : PegSolitaire
-Description : 
-Copyright   : STUDENT NAME 1 (ID)
-              STUDENT NAME 2 (ID)
+Description :
+Copyright   : David Mereacre (1966561)
+              Ryan Sindic (1957198)
 
 
 -}
@@ -60,7 +60,7 @@ isWinning = error "Implement, document, and test this function"
 generateStates = error "Implement, document, and test this function"
 generateLinearStates = error "Implement, document, and test this function"
 
--- data Zipper a = 
+-- data Zipper a =
 
 fromZipper = error "Implement, document, and test this function"
 toZipper = error "Implement, document, and test this function"
