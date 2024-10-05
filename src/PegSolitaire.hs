@@ -55,17 +55,35 @@ stringToPegs = map f
     f 'X' = Peg
     f _ = error "Invalid peg string"
 
-----------------------------------
+--------------------------------------------------------------------------------------
 
+-- | Function that, given a Peg solitaire game, determines if
+-- the current state is the winning state.
+--
+-- === __Examples__
+-- TO DO
 isWinning :: Pegs -> Bool
-isWinning [] = False -- handle empty list case
-isWinning [x] = isPeg x -- base case
+isWinning [] = False
+isWinning [x] = isPeg x
 isWinning (x:xs) = isPeg x `xor` isWinning xs
 
+-- | Helper function that checks if a value is `Peg`. If it is, it returns
+-- `True`. otherwise, it returns `False`.
 isPeg :: Peg -> Bool
 isPeg x = case x of
     Peg -> True
     Empty -> False
+
+-- | Catamorphism factory for type `Tree`.
+--
+-- === __Examples__
+-- TO DO
+foldT :: (a -> b) -> (a -> [b] -> b) -> Tree a -> b
+foldT fLeaf fNode = go
+    where
+        go (Leaf l) = fLeaf l
+        go (Node n ts) = fNode n (map go ts)
+
 
 generateStates = error "Implement, document, and test this function"
 generateLinearStates = error "Implement, document, and test this function"
@@ -77,7 +95,6 @@ toZipper = error "Implement, document, and test this function"
 tryRight = error "Implement, document, and test this function"
 tryLeft = error "Implement, document, and test this function"
 makeMoves = error "Implement, document, and test this function"
-foldT = error "Implement, document, and test this function"
 unfoldT = error "Implement, document, and test this function"
 makeGameTree = error "Implement, document, and test this function"
 hasSolution = error "Implement, document, and test this function"
