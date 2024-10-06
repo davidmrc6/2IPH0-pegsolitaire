@@ -90,6 +90,32 @@ generateLinearStates = error "Implement, document, and test this function"
 
 -- data Zipper a =
 
+-- data Zipper a = ...
+data Zipper a = Zipper [a] a [a]
+
+instance Show a => Show (Zipper a) where
+    show (Zipper left focus right) =
+        show (reverse left) ++ "(" ++ show focus ++ ")" ++ show right
+
+fromZipper :: Zipper a -> [a]
+fromZipper (Zipper left focus right) = reverse left ++ [focus] ++ right
+
+
+toZipper :: [a] -> Maybe (Zipper a)
+toZipper [] = Nothing
+toZipper (x:xs) = Just (Zipper [] x xs)
+
+
+tryRight :: Zipper a -> Maybe (Zipper a)
+tryRight (Zipper left focus (r:rs)) = Just (Zipper (focus:left) r rs)
+tryRight _ = Nothing
+
+
+tryLeft :: Zipper a -> Maybe (Zipper a)
+tryLeft (Zipper (l:ls) focus right) = Just (Zipper ls l (focus:right))
+tryLeft _ = Nothing
+
+ 
 fromZipper = error "Implement, document, and test this function"
 toZipper = error "Implement, document, and test this function"
 tryRight = error "Implement, document, and test this function"
