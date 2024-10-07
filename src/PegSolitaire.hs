@@ -61,23 +61,20 @@ stringToPegs = map f
 -- the current state is the winning state.
 --
 -- === __Examples__
--- TO DO
-isWinning :: Pegs -> Bool
-isWinning [] = False
-isWinning [x] = isPeg x
-isWinning (x:xs) = isPeg x `xor` isWinning xs
-
--- | Helper function that checks if a value is `Peg`. If it is, it returns
--- `True`. otherwise, it returns `False`.
-isPeg :: Peg -> Bool
-isPeg x = case x of
-    Peg -> True
-    Empty -> False
-
--- | Catamorphism factory for type `Tree`.
+-- >>> isWinning [Peg, Empty, Empty, Empty, Peg, Peg]
+-- False
 --
--- === __Examples__
--- TO DO
+-- >>> isWinning [Empty, Empty, Peg, Peg]
+-- False
+--
+-- >>> isWinning [Empty, Peg, Empty, Empty, Empty]
+-- True
+--
+isWinning :: Pegs -> Bool
+isWinning pegs = (length . filter (== Peg)) pegs == 1
+
+
+
 foldT :: (a -> b) -> (a -> [b] -> b) -> Tree a -> b
 foldT fLeaf fNode = go
     where
@@ -115,11 +112,6 @@ tryLeft :: Zipper a -> Maybe (Zipper a)
 tryLeft (Zipper (l:ls) focus right) = Just (Zipper ls l (focus:right))
 tryLeft _ = Nothing
 
- 
-fromZipper = error "Implement, document, and test this function"
-toZipper = error "Implement, document, and test this function"
-tryRight = error "Implement, document, and test this function"
-tryLeft = error "Implement, document, and test this function"
 makeMoves = error "Implement, document, and test this function"
 unfoldT = error "Implement, document, and test this function"
 makeGameTree = error "Implement, document, and test this function"
