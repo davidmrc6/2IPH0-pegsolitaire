@@ -120,6 +120,7 @@ data Zipper a = Zipper [a] a [a]
     deriving (Show, Eq)
 
 
+
 -- | Convert a Zipper back to a list.
 -- This function takes a Zipper as an argument and returns its corresponding list by
 -- concatenating its history (reversed), the focus, and the remainder.
@@ -206,16 +207,21 @@ tryLeft (Zipper [] _ _)          = Nothing
 
 
 -- | Generates all possible game states of length n with exactly one empty position.
---
 -- This function generates all possible game states where n-1 positions are filled with pegs and one position is empty.
+--
+-- === __Parameters__
+-- * `n` - The length of the game state.
+--
+-- === __Returns__
+-- * A list of game states with exactly one empty position.
 --
 -- === __Examples__
 --
 -- >>> generateLinearStates 2
--- [[Empty,Peg],[Peg,Empty]]
+-- [ .  X , X  . ]
 --
 -- >>> generateLinearStates 3
--- [[Empty,Peg,Peg],[Peg,Empty,Peg],[Peg,Peg,Empty]]
+-- [ .  X  X , X  .  X , X  X  . ]
 --
 generateLinearStates :: Int -> [Pegs]
 generateLinearStates n = unfoldr f 0
@@ -227,15 +233,25 @@ generateLinearStates n = unfoldr f 0
     pegsList :: Int -> Pegs
     pegsList i = [if j == i then Empty else Peg | j <- [0..n-1]]
 
+    
 -- | Generates all possible game states up to length n.
 --
 -- This function generates all possible game states of lengths from 1 up to n, where each position can be either a peg or empty.
+-- The function uses a bitmask approach to represent each state, where `0` represents an `Empty` slot, and `1` represents a `Peg`.
+--
+-- === __Parameters__
+-- * `n` - The maximum length of the game state.
+--
+-- === __Returns__
+-- * A list of all possible game states up to length n.
 --
 -- === __Examples__
 --
 -- >>> generateStates 2
--- [[Empty],[Peg],[Empty,Empty],[Peg,Empty],[Empty,Peg],[Peg,Peg]]
+-- [ . , X , .  . , X  . , .  X , X  X ]
 --
+-- >>> generateStates 3
+-- [ . , X , .  . , X  . , .  X , X  X , .  .  . , X  .  . , .  X  . , X  X  . , .  .  X , X  .  X , .  X  X , X  X  X ]
 generateStates :: Int -> [Pegs]
 generateStates n = concatMap generateStatesOfLength [1..n]
   where

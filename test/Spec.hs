@@ -36,6 +36,7 @@ main = hspec $ do
         let pegs = [Peg, Empty, Peg, Empty]
         isWinning pegs `shouldBe` False
 
+
   -- | Tests for `foldT`
   describe "foldT" $ do
     it "should transform a tree of numbers by summing them up" $ do
@@ -70,6 +71,7 @@ main = hspec $ do
         let tree = Node 10 [Node 20 [Leaf 5, Node 7 [Leaf 3, Leaf 2]]]
         foldT id (\n ts -> n + sum ts) tree `shouldBe` 47
 
+
   -- | Tests for `toZipper`
   describe "toZipper" $ do
     it "should convert a list into a zipper" $ do
@@ -86,6 +88,7 @@ main = hspec $ do
     it "should convert a longer list to a zipper" $ do
         let list = [1,2,3,4,5,6,7,8,9] :: [Int]
         toZipper list `shouldBe` Just (Zipper [] 1 [2,3,4,5,6,7,8,9])
+
 
   -- | Tests for `fromZipper`
   describe "fromZipper" $ do
@@ -104,6 +107,7 @@ main = hspec $ do
     it "should return a list with only the focus when history and remainder are empty" $ do
         let zipper = Zipper [] 1 []
         fromZipper zipper `shouldBe` [1]
+
 
   -- | Tests for `tryRight`
   describe "tryRight" $ do
@@ -126,6 +130,7 @@ main = hspec $ do
             Just z -> tryRight z `shouldBe` Just (Zipper [3,2,1] 4 [])
             _ -> expectationFailure "Expected Just value"
 
+
   -- | Tests for `tryLeft`
   describe "tryLeft" $ do
     it "should move focus one step to the left" $ do
@@ -147,15 +152,68 @@ main = hspec $ do
             Just z -> tryLeft z `shouldBe` Just (Zipper [] 1 [2,3,4,5])
             _ -> expectationFailure "Expected Just value"
 
+
   -- Tests for `generateStates`
   describe "generateStates" $ do
-    it "should have tests" $ do
-          (1 :: Integer) `shouldBe` (1 :: Integer)
+    it "should generate all states for n=1" $ do
+      generateStates 1 `shouldBe` [[Empty], [Peg]]
+
+    it "should generate all states up to n=3" $ do
+      generateStates 3 `shouldBe` [[Empty], [Peg],
+                                   [Empty, Empty],
+                                   [Peg, Empty],
+                                   [Empty, Peg],
+                                   [Peg, Peg],
+                                   [Empty, Empty, Empty],
+                                   [Peg, Empty, Empty],
+                                   [Empty, Peg, Empty],
+                                   [Peg, Peg, Empty],
+                                   [Empty, Empty, Peg],
+                                   [Peg, Empty, Peg],
+                                   [Empty, Peg, Peg],
+                                   [Peg, Peg, Peg]]
+
+    it "should generate all states up to n=2" $ do
+      generateStates 2 `shouldBe` [[Empty], [Peg], [Empty, Empty], [Peg, Empty], [Empty, Peg], [Peg, Peg]]
+
+    it "should handle large n values (e.g., n=4)" $ do
+      let n = 4
+      generateStates n `shouldBe` [[Empty], [Peg],
+                                   [Empty, Empty], [Peg, Empty], [Empty, Peg], [Peg, Peg],
+                                   [Empty, Empty, Empty], [Peg, Empty, Empty], [Empty, Peg, Empty], [Peg, Peg, Empty],
+                                   [Empty, Empty, Peg], [Peg, Empty, Peg], [Empty, Peg, Peg], [Peg, Peg, Peg],
+                                   [Empty, Empty, Empty, Empty], [Peg, Empty, Empty, Empty], [Empty, Peg, Empty, Empty],
+                                   [Peg, Peg, Empty, Empty], [Empty, Empty, Peg, Empty], [Peg, Empty, Peg, Empty],
+                                   [Empty, Peg, Peg, Empty], [Peg, Peg, Peg, Empty], [Empty, Empty, Empty, Peg],
+                                   [Peg, Empty, Empty, Peg], [Empty, Peg, Empty, Peg], [Peg, Peg, Empty, Peg],
+                                   [Empty, Empty, Peg, Peg], [Peg, Empty, Peg, Peg], [Empty, Peg, Peg, Peg], [Peg, Peg, Peg, Peg]]
+
+    it "should generate an empty list when n=0" $ do
+      generateStates 0 `shouldBe` []
+
 
   -- Tests for `generateLinearStates`
   describe "generateLinearStates" $ do
-    it "should have tests" $ do
-          (1 :: Integer) `shouldBe` (1 :: Integer)
+    it "should generate states for n=2 with exactly one empty position" $ do
+        generateLinearStates 2 `shouldBe` [[Empty, Peg], [Peg, Empty]]
+
+    it "should generate states for n=3 with exactly one empty position" $ do
+        generateLinearStates 3 `shouldBe` [[Empty, Peg, Peg], [Peg, Empty, Peg], [Peg, Peg, Empty]]
+
+    it "should generate an empty list when n=0" $ do
+        generateLinearStates 0 `shouldBe` []
+
+    it "should generate a single state when n=1" $ do
+        generateLinearStates 1 `shouldBe` [[Empty]]
+
+    it "should handle large n values" $ do
+        let n = 4
+        generateLinearStates n `shouldBe` [[Empty, Peg, Peg, Peg],
+                                            [Peg, Empty, Peg, Peg],
+                                            [Peg, Peg, Empty, Peg],
+                                            [Peg, Peg, Peg, Empty]]
+
+
 
   describe "makeMoves" $ do
     it "should have tests" $ do
