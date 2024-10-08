@@ -34,7 +34,7 @@ module PegSolitaire
 where
 import Data.List (unfoldr)
 import Data.Maybe
-import Data.Bits (Bits(xor))
+import Data.Bits (Bits(xor), testBit)
 
 data Peg = Empty | Peg deriving (Eq, Ord)
 
@@ -57,31 +57,53 @@ stringToPegs = map f
 
 --------------------------------------------------------------------------------------
 
--- | Function that, given a Peg solitaire game, determines if
--- the current state is the winning state.
+-- | Function that, given a Peg solitaire game, determines if the current state is the winning state.
+--
+-- === __Parameters__
+-- * `pegs` - A list of pegs representing the current state of the game.
+--
+-- === __Returns__
+-- * `True` if the current state is a winning state, `False` otherwise.
 --
 -- === __Examples__
 -- >>> isWinning [Peg, Empty, Empty, Empty, Peg, Peg]
--- WAS WAS False
--- WAS NOW C:\Users\20231620\AppData\Local\Temp\extE70F: withFile: resource busy (file is locked)
--- NOW False
+-- False
 --
 -- >>> isWinning [Empty, Empty, Peg, Peg]
--- WAS WAS False
--- WAS NOW False
--- WAS NOW False
--- NOW False
+-- False
 --
--- WAS True
--- NOW True
--- WAS True
--- NOW True
+-- >>> isWinning [Empty, Peg, Emtpy, Empty]
+-- True
 --
 isWinning :: Pegs -> Bool
 isWinning pegs = (length . filter (== Peg)) pegs == 1
 
 
-
+-- | Catamorphism factory for type `Tree` to help transform a tree into some other value.
+-- The function recursively processes the tree structure, transforming it into a value of type `b`.
+--
+-- === __Parameters__
+-- * `fLeaf` - Function to apply to the leaf nodes of the tree.
+-- * `fNode` - Function to apply to the nodes of the tree.
+-- * `Tree a` - The tree to transform.
+--
+-- === __Returns__
+-- * A value of type `b` that represents the transformed tree.
+--
+-- === __Examples__
+-- >>> foldT id (\n ts -> n + sum ts) (Node 3 [Leaf 1, Leaf 2, Node 4 [Leaf 5]])
+-- 15
+-- >>> foldT length (\_ ts -> sum ts) (Node "root" [Leaf "a", Leaf "bb", Leaf "ccc"])
+-- 6
+--
+-- === __Notes__
+-- Our implementation of `foldT` is a catamorphism factory for the `Tree` data type defined
+-- above. `foldr`, for example, is a catamorphism factory for lists, and it has a similar
+-- recursive structure to `foldT`, but can only be applied to lists. `foldTree` from `Data.Tree`
+-- is more similar to our `foldT`, with a few important distinctions. `foldTree` uses one
+-- function for both nodes and strings, as opposed to `foldT`, which explicitly separates
+-- leaf and node processing.
+--
 foldT :: (a -> b) -> (a -> [b] -> b) -> Tree a -> b
 foldT fLeaf fNode = go
     where
@@ -89,12 +111,7 @@ foldT fLeaf fNode = go
         go (Node n ts) = fNode n (map go ts)
 
 
-generateStates = error "Implement, document, and test this function"
-generateLinearStates = error "Implement, document, and test this function"
-
--- data Zipper a =
-
--- data Zipper a = ...
+-- `Zipper` data type
 data Zipper a = Zipper [a] a [a]
 
 instance Show a => Show (Zipper a) where

@@ -19,6 +19,33 @@ main = hspec $ do
           let pegs = []
           isWinning pegs `shouldBe` False
 
+  describe "foldT" $ do
+
+    it "should transform a tree of numbers by summing them up" $ do
+      let tree = Node 3 [Leaf 1, Leaf 2, Node 4 [Leaf 5]]
+      foldT id (\n ts -> n + sum ts) tree `shouldBe` 15
+
+    it "should transform a tree of strings by calculating total length" $ do
+      let tree = Node "root" [Leaf "a", Leaf "bb", Leaf "ccc"]
+      foldT length (\_ ts -> sum ts) tree `shouldBe` 6
+
+    it "should handle a single-leaf tree" $ do
+      let tree = Leaf 10
+      foldT id (\n _ -> n) tree `shouldBe` 10
+
+    it "should handle a single-node tree with no children" $ do
+      let tree = Node 5 []
+      foldT id (\n ts -> n + sum ts) tree `shouldBe` 5
+
+    it "should apply custom function on a complex tree structure" $ do
+      let tree = Node 2 [Leaf 1, Node 3 [Leaf 4, Leaf 5], Leaf 6]
+      foldT show (\n ts -> concat ([show n] ++ ts)) tree `shouldBe` "213456"
+
+    it "should return the correct sum for an empty node list" $ do
+      let tree = Node 10 []
+      foldT id (\n _ -> n) tree `shouldBe` 10
+
+
   describe "generateStates" $ do
     it "should have tests" $ do
           (1 :: Integer) `shouldBe` (1 :: Integer)
@@ -44,10 +71,6 @@ main = hspec $ do
           (1 :: Integer) `shouldBe` (1 :: Integer)
 
   describe "makeMoves" $ do
-    it "should have tests" $ do
-          (1 :: Integer) `shouldBe` (1 :: Integer)
-
-  describe "foldT" $ do
     it "should have tests" $ do
           (1 :: Integer) `shouldBe` (1 :: Integer)
 
