@@ -15,7 +15,7 @@ module PegSolitaire
     isWinning,
     generateStates,
     generateLinearStates,
-    -- Zipper(..),
+    Zipper(..),
     fromZipper,
     toZipper,
     tryRight,
@@ -111,30 +111,99 @@ foldT fLeaf fNode = go
         go (Node n ts) = fNode n (map go ts)
 
 
--- `Zipper` data type
+-- | Zipper data type for storing a list in a focused structure.
+-- The `Zipper` stores:
+-- * A list of elements to the left of the current focus.
+-- * The current focus item.
+-- * A list of elements to the right of the current focus.
 data Zipper a = Zipper [a] a [a]
+    deriving (Show, Eq)
 
-instance Show a => Show (Zipper a) where
-    show (Zipper left focus right) =
-        show (reverse left) ++ "(" ++ show focus ++ ")" ++ show right
 
+-- | Convert a Zipper back to a list.
+-- This function takes a Zipper as an argument and returns its corresponding list by
+-- concatenating its history (reversed), the focus, and the remainder.
+--
+-- === __Parameters__
+-- * `Zipper a` - The zipper to convert to a list.
+--
+-- === __Returns__
+-- * A list of elements that represents the zipper.
+--
+-- === __Examples__
+-- >>> fromZipper (Zipper [2,1] 3 [4,5])
+-- [1,2,3,4,5]
+--
 fromZipper :: Zipper a -> [a]
 fromZipper (Zipper left focus right) = reverse left ++ [focus] ++ right
 
 
+-- | Conver a list into a zipper with the first element as the focus.
+-- This function takes a list as an argument and converts it into a `Zippper`. If the
+-- list is empty, it returns nothing.
+--
+-- === __Parameters__
+-- * `[a]` - The list to convert to a zipper.
+--
+-- === __Returns__
+-- * A `Zipper` with the first element as the focus, or `Nothing` if the list is empty.
+--
+-- === __Examples__
+-- >>> toZipper [1,2,3,4,5]
+-- Just [](1)[2,3,4,5]
+-- >>> toZipper []
+-- Nothing
+--
 toZipper :: [a] -> Maybe (Zipper a)
 toZipper [] = Nothing
 toZipper (x:xs) = Just (Zipper [] x xs)
 
+
+-- Move the focus of the zipper one position to the right.
+-- If there is a value to the right of the focus, move the focus to that position,
+-- and append the value to the history list. Otherwise, return `Nothing` (if the zipper
+-- cannot move right).
+--
+-- === __Parameters__
+-- * `Zipper a` - The zipper to move right.
+--
+-- === __Returns__
+-- * A new zipper with the focus moved to the right, or `Nothing` if the zipper cannot move right.
+--
+-- === __Examples__
+-- >>> tryRight (Zipper [2,1] 3 [4,5])
+-- Just [1,2,3](4)[5]
+--
+-- >>> tryRight (Zipper [] 5 [])
+-- Nothing
 
 tryRight :: Zipper a -> Maybe (Zipper a)
 tryRight (Zipper left focus (r:rs)) = Just (Zipper (focus:left) r rs)
 tryRight _ = Nothing
 
 
+-- | Move the focus of the zipper one position to the left.
+-- If there is a value to the left of the focus, move the focus to that position,
+-- and append the value to the remainder list. Otherwise, return `Nothing` (if the zipper
+-- cannot move left).
+--
+-- === __Parameters__
+-- * `Zipper a` - The zipper to move left.
+--
+-- === __Returns__
+-- * A new zipper with the focus moved to the left, or `Nothing` if the zipper cannot move left.
+--
+-- === __Examples__
+-- >>> tryLeft (Zipper [2,1] 3 [4,5])
+-- Just [1](2)[3,4,5]
+--
+-- >>> tryLeft (Zipper [] 5 [6,7])
+-- Nothing
+--
 tryLeft :: Zipper a -> Maybe (Zipper a)
-tryLeft (Zipper (l:ls) focus right) = Just (Zipper ls l (focus:right))
-tryLeft _ = Nothing
+tryLeft (Zipper (l:ls) focus rs) = Just (Zipper ls l (focus:rs))
+tryLeft (Zipper [] _ _)          = Nothing
+
 
 -- | Generates all possible game states of length n with exactly one empty position.
 --
