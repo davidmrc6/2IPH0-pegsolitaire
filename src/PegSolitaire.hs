@@ -233,7 +233,7 @@ generateLinearStates n = unfoldr f 0
     pegsList :: Int -> Pegs
     pegsList i = [if j == i then Empty else Peg | j <- [0..n-1]]
 
-    
+
 -- | Generates all possible game states up to length n.
 --
 -- This function generates all possible game states of lengths from 1 up to n, where each position can be either a peg or empty.
@@ -266,8 +266,47 @@ generateStates n = concatMap generateStatesOfLength [1..n]
     intToPegs :: Int -> Int -> Pegs
     intToPegs i k = [if testBit i j then Peg else Empty | j <- [0..k-1]]
 
+
+-- | Generates all possible moves from a given game state.
+--
+-- === __Examples__
+-- >>> makeMoves (Zipper [Peg, Empty, Peg] Empty [Peg, Peg])
+makeMoves :: Zipper Peg -> [Zipper Peg]
 makeMoves = error "Implement, document, and test this function"
-unfoldT = error "Implement, document, and test this function"
+
+
+-- | Unfolds a tree from a seed value.
+--
+-- === __Parameters__
+-- * `f` - Function that generates the next tree node from a seed value.
+-- * `x` - The seed value to start the tree generation.
+--
+-- === __Returns__
+-- * A tree generated from the seed value.
+--
+-- === __Examples__
+-- >>> unfoldT (\x -> if x == 0 then Left 0 else Right (x, [x-1])) 5
+-- Node 5 [Node 4 [Node 3 [Node 2 [Node 1 [Leaf 0]]]]]
+--
+-- >>> unfoldT (\x -> if x == 0 then Left 0 else Right (x, [x-1])) 0
+-- Leaf 0
+--
+-- >>> unfoldT (\x -> if 2 * x + 1 > 7 then Left x else Right (x, [2 * x + 1, 2 * x + 2])) 1
+-- Node 1 [Node 3 [Leaf 7,Leaf 8],Leaf 4]
+--
+-- === __Notes__
+-- Our implementation of `unfoldT` is an anamorphism factory for the `Tree` data type defined
+-- above. `unfoldr`, for example, is an anamorphism factory for lists, and is used to build
+-- lists from a seed value. `unfoldT` has a similar recursive structure to `unfoldr`, but can
+-- only be applied to trees. `unfoldTree` from `Data.Tree` is more similar to our `unfoldT`.
+--
+unfoldT :: (b -> Either a (a, [b])) -> b -> Tree a
+unfoldT f x = case f x of
+    Left a -> Leaf a
+    Right (a, bs) -> Node a (map (unfoldT f) bs)
+
+
+
 makeGameTree = error "Implement, document, and test this function"
 hasSolution = error "Implement, document, and test this function"
 allSolutions = error "Implement, document, and test this function"
