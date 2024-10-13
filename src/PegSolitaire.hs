@@ -288,20 +288,26 @@ moveFocusToRight zipper = maybe zipper moveFocusToRight (tryRight zipper)
 --
 -- === __Examples__
 -- >>> makeMoves (Zipper [Peg, Empty, Peg] Empty [Peg, Peg])
--- WAS WAS WAS WAS WAS WAS [Zipper  X  .  X  X  .  . ]
--- WAS WAS WAS WAS WAS NOW []
--- WAS WAS WAS WAS NOW []
+-- WAS WAS WAS WAS WAS WAS WAS WAS [Zipper  X  .  X  X  .  . ]
+-- WAS WAS WAS WAS WAS WAS WAS NOW []
+-- WAS WAS WAS WAS WAS WAS NOW []
+-- WAS WAS WAS WAS WAS NOW [Zipper  .  X  X  .  X  . ]
+-- WAS WAS WAS WAS NOW [Zipper  .  X  X  .  X  . ]
 -- WAS WAS WAS NOW [Zipper  .  X  X  .  X  . ]
 -- WAS WAS NOW [Zipper  .  X  X  .  X  . ]
 -- WAS NOW [Zipper  .  X  X  .  X  . ]
 -- NOW [Zipper  .  X  X  .  X  . ]
 --
 -- >>> makeMoves (Zipper [Peg, Empty, Peg] Peg [Peg, Peg])
--- []
+-- WAS []
+-- NOW [Zipper  .  X  X  .  X  X ]
 --
 -- >>> map fromZipper  (makeMoves (Zipper [Peg, Peg] Empty [Empty, Peg, Peg]))
 -- [ X  X  .  X  .  . , .  .  X  .  X  X ]
 --
+-- >>> map fromZipper (makeMoves (Zipper [Peg, Peg] Peg [Empty, Empty]))
+-- WAS []
+-- NOW [ X  .  .  X  . ]
 --
 -- >>> makeMoves (Zipper [Peg, Empty] Peg [])
 -- [Zipper  .  X  . ]
@@ -317,14 +323,14 @@ makeMoves zipper = catMaybes (leftMoves ++ rightMoves)
         moveLeft (Zipper (l1:l2:ls) focus rs)
          | l2 == Empty && l1 == Peg  && focus == Peg =
             Just (Just (Zipper (Empty:Peg:ls) Empty rs), Zipper (l2:ls) l1 (focus:rs))
-         | otherwise = Nothing
+         | otherwise = Just (Nothing, Zipper (l2:ls) l1 (focus:rs))
         moveLeft _ = Nothing
 
         moveRight :: Zipper Peg -> Maybe (Maybe (Zipper Peg), Zipper Peg)
         moveRight (Zipper ls focus (r1:r2:rs))
          | r2 == Empty && r1 == Peg && focus == Peg =
             Just (Just (Zipper ls Empty (Empty:Peg:rs)), Zipper  (focus:ls) r1 (r2:rs))
-         | otherwise = Nothing
+         | otherwise = Just (Nothing, Zipper (focus:ls) r1 (r2:rs))
         moveRight _ = Nothing
 
 

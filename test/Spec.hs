@@ -216,8 +216,11 @@ main = hspec $ do
 
 
   describe "makeMoves" $ do
-    it "should have tests" $ do
-          (1 :: Integer) `shouldBe` (1 :: Integer)
+    it "should make the right move on a simple game state" $ do
+          makeMoves (Zipper [Peg] Peg [Empty]) `shouldBe` [Zipper [] Empty [Empty, Peg]]
+
+    it "should make the right move on a more complex game state" $ do
+        makeMoves (Zipper [Peg, Peg] Peg [Empty, Empty]) `shouldBe` [Zipper [] Peg [Empty, Empty, Peg, Empty]]
 
   describe "unfoldT" $ do
     it "should have tests" $ do
