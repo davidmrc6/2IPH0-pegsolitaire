@@ -266,13 +266,66 @@ generateStates n = concatMap generateStatesOfLength [1..n]
     intToPegs :: Int -> Int -> Pegs
     intToPegs i k = [if testBit i j then Peg else Empty | j <- [0..k-1]]
 
+--
+-- === __Examples__
+-- >>> moveFocusToLeft (Zipper [2, 1] 3 [4,5])
+-- Zipper [] 1 [2,3,4,5]
+--
+moveFocusToLeft :: Zipper a -> Zipper a
+moveFocusToLeft zipper = maybe zipper moveFocusToLeft (tryLeft zipper)
+
+
+
+-- >>> moveFocusToRight (Zipper [2, 1] 3 [4,5])
+-- Zipper [4,3,2,1] 5 []
+--
+moveFocusToRight :: Zipper a -> Zipper a
+moveFocusToRight zipper = maybe zipper moveFocusToRight (tryRight zipper)
+
+
 
 -- | Generates all possible moves from a given game state.
 --
 -- === __Examples__
 -- >>> makeMoves (Zipper [Peg, Empty, Peg] Empty [Peg, Peg])
+-- WAS WAS WAS WAS WAS WAS [Zipper  X  .  X  X  .  . ]
+-- WAS WAS WAS WAS WAS NOW []
+-- WAS WAS WAS WAS NOW []
+-- WAS WAS WAS NOW [Zipper  .  X  X  .  X  . ]
+-- WAS WAS NOW [Zipper  .  X  X  .  X  . ]
+-- WAS NOW [Zipper  .  X  X  .  X  . ]
+-- NOW [Zipper  .  X  X  .  X  . ]
+--
+-- >>> makeMoves (Zipper [Peg, Empty, Peg] Peg [Peg, Peg])
+-- []
+--
+-- >>> map fromZipper  (makeMoves (Zipper [Peg, Peg] Empty [Empty, Peg, Peg]))
+-- [ X  X  .  X  .  . , .  .  X  .  X  X ]
+--
+--
+-- >>> makeMoves (Zipper [Peg, Empty] Peg [])
+-- [Zipper  .  X  . ]
+
 makeMoves :: Zipper Peg -> [Zipper Peg]
-makeMoves = error "Implement, document, and test this function"
+makeMoves zipper = catMaybes (leftMoves ++ rightMoves)
+    where
+
+        leftMoves = unfoldr moveLeft (moveFocusToRight zipper)
+        rightMoves = unfoldr moveRight (moveFocusToLeft zipper)
+
+        moveLeft :: Zipper Peg -> Maybe (Maybe (Zipper Peg), Zipper Peg)
+        moveLeft (Zipper (l1:l2:ls) focus rs)
+         | l2 == Empty && l1 == Peg  && focus == Peg =
+            Just (Just (Zipper (Empty:Peg:ls) Empty rs), Zipper (l2:ls) l1 (focus:rs))
+         | otherwise = Nothing
+        moveLeft _ = Nothing
+
+        moveRight :: Zipper Peg -> Maybe (Maybe (Zipper Peg), Zipper Peg)
+        moveRight (Zipper ls focus (r1:r2:rs))
+         | r2 == Empty && r1 == Peg && focus == Peg =
+            Just (Just (Zipper ls Empty (Empty:Peg:rs)), Zipper  (focus:ls) r1 (r2:rs))
+         | otherwise = Nothing
+        moveRight _ = Nothing
 
 
 -- | Unfolds a tree from a seed value.
