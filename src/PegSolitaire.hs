@@ -313,7 +313,7 @@ moveFocusToRight zipper = maybe zipper moveFocusToRight (tryRight zipper)
 --
 -- >>> makeMoves (Zipper [Peg, Empty] Peg [])
 -- [Zipper  .  X  . ]
-
+--
 makeMoves :: Zipper Peg -> [Zipper Peg]
 makeMoves zipper = catMaybes (leftMoves ++ rightMoves)
     where
@@ -367,8 +367,29 @@ unfoldT f x = case f x of
     Right (a, bs) -> Node a (map (unfoldT f) bs)
 
 
-
-makeGameTree = error "Implement, document, and test this function"
+-- | Generates the game tree for a given initial state.
+-- The tree is generated using the `unfoldT` function, where each node represents a game state
+-- and its children represent the next possible game states that can be reached by making a valid move.
+--
+-- === __Parameters__
+-- * `initialState` - The initial game state represented as a `Zipper Peg`.
+--
+-- === __Returns__
+-- * A `Tree` representing all possible game states that can be reached from the initial state.
+--
+-- === __Examples__
+-- >>> makeGameTree (Zipper [Peg, Peg] Empty [Empty, Peg, Peg])
+-- Node (Zipper  X  X  .  .  X  X ) [Node (Zipper  .  X  .  X  X  . ) [Node (Zipper  .  .  X  X  .  . ) [Leaf (Zipper  .  X  .  .  .  . ),Leaf (Zipper  .  .  .  .  X  . )]],Node (Zipper  .  .  X  .  X  X ) [Node (Zipper  .  X  X  .  .  . ) [Leaf (Zipper  .  X  .  .  .  . ),Leaf (Zipper  .  .  .  .  X  . )]]]
+--
+makeGameTree :: Zipper Peg -> Tree (Zipper Peg)
+makeGameTree = unfoldT f
+    where
+        f :: Zipper Peg -> Either (Zipper Peg) (Zipper Peg, [Zipper Peg])
+        f zipper =
+            let moves = makeMoves zipper
+            in if null moves
+                    then Left zipper
+                    else Right (zipper, moves)
 hasSolution = error "Implement, document, and test this function"
 allSolutions = error "Implement, document, and test this function"
 getSolution = error "Implement, document, and test this function"
