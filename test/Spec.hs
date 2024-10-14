@@ -216,11 +216,25 @@ main = hspec $ do
 
 
   describe "makeMoves" $ do
+    it "should handle an empty game state" $ do
+          makeMoves (Zipper [] Empty []) `shouldBe` []
+
+    it "should handle a (non-empty) game state with no possible moves" $ do
+        makeMoves (Zipper [Peg, Empty] Empty [Empty, Peg]) `shouldBe` []
+
     it "should make the right move on a simple game state" $ do
           makeMoves (Zipper [Peg] Peg [Empty]) `shouldBe` [Zipper [] Empty [Empty, Peg]]
 
     it "should make the right move on a more complex game state" $ do
-        makeMoves (Zipper [Peg, Peg] Peg [Empty, Empty]) `shouldBe` [Zipper [] Peg [Empty, Empty, Peg, Empty]]
+        map fromZipper (makeMoves (Zipper [Peg, Peg] Peg [Empty, Empty])) `shouldBe` [[Peg, Empty, Empty, Peg, Empty]]
+
+    it "should make the right moves on a game with multiple reachable game stats" $ do
+        map fromZipper (makeMoves (Zipper [Peg, Peg, Empty] Peg [Empty, Peg, Peg, Empty])) `shouldBe` [
+            [Empty, Peg, Peg, Peg, Peg, Empty, Empty, Empty],
+            [Peg, Empty, Empty, Peg, Empty, Peg, Peg, Empty],
+            [Empty, Peg, Empty, Empty, Peg, Peg, Peg, Empty],
+            [Empty, Peg, Peg, Peg, Empty, Empty, Empty, Peg]
+            ]
 
   describe "unfoldT" $ do
     it "should have tests" $ do
