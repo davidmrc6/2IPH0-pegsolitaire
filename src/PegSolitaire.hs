@@ -266,6 +266,9 @@ generateStates n = concatMap generateStatesOfLength [1..n]
     intToPegs :: Int -> Int -> Pegs
     intToPegs i k = [if testBit i j then Peg else Empty | j <- [0..k-1]]
 
+
+-- | Helper function that moves the focus to the start of the zipper (i. e., after applying the
+-- function, the history will be empty).
 --
 -- === __Examples__
 -- >>> moveFocusToLeft (Zipper [2, 1] 3 [4,5])
@@ -275,7 +278,9 @@ moveFocusToLeft :: Zipper a -> Zipper a
 moveFocusToLeft zipper = maybe zipper moveFocusToLeft (tryLeft zipper)
 
 
-
+-- | Helper function that moves the focus to the end of the zipper (i. e., after applying the
+-- function, the remainder will be empty).
+--
 -- >>> moveFocusToRight (Zipper [2, 1] 3 [4,5])
 -- Zipper [4,3,2,1] 5 []
 --
@@ -286,28 +291,25 @@ moveFocusToRight zipper = maybe zipper moveFocusToRight (tryRight zipper)
 
 -- | Generates all possible moves from a given game state.
 --
+-- This function generates all possible game states that can be reached from the current game state by moving a peg
+-- over another peg. The function works by unfolding both the history and the remainder of the zipper,
+-- moving the focus to the right and left, and generating a new zipper for each possible move.
+--
+-- === __Parameters__
+-- * `zipper` - The current game state.
+--
+-- === __Returns__
+-- * A list of all possible game states that can be reached from the current game state.
+--
 -- === __Examples__
 -- >>> makeMoves (Zipper [Peg, Empty, Peg] Empty [Peg, Peg])
--- WAS WAS WAS WAS WAS WAS WAS WAS [Zipper  X  .  X  X  .  . ]
--- WAS WAS WAS WAS WAS WAS WAS NOW []
--- WAS WAS WAS WAS WAS WAS NOW []
--- WAS WAS WAS WAS WAS NOW [Zipper  .  X  X  .  X  . ]
--- WAS WAS WAS WAS NOW [Zipper  .  X  X  .  X  . ]
--- WAS WAS WAS NOW [Zipper  .  X  X  .  X  . ]
--- WAS WAS NOW [Zipper  .  X  X  .  X  . ]
--- WAS NOW [Zipper  .  X  X  .  X  . ]
--- NOW [Zipper  .  X  X  .  X  . ]
+-- [Zipper  .  X  X  .  X  . ]
 --
 -- >>> makeMoves (Zipper [Peg, Empty, Peg] Peg [Peg, Peg])
--- WAS []
--- NOW [Zipper  .  X  X  .  X  X ]
+-- [Zipper  .  X  X  .  X  X ]
 --
 -- >>> map fromZipper  (makeMoves (Zipper [Peg, Peg] Empty [Empty, Peg, Peg]))
 -- [ X  X  .  X  .  . , .  .  X  .  X  X ]
---
--- >>> map fromZipper (makeMoves (Zipper [Peg, Peg] Peg [Empty, Empty]))
--- WAS []
--- NOW [ X  .  .  X  . ]
 --
 -- >>> makeMoves (Zipper [Peg, Empty] Peg [])
 -- [Zipper  .  X  . ]
