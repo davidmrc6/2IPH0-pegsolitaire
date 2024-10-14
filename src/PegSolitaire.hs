@@ -390,6 +390,236 @@ makeGameTree = unfoldT f
             in if null moves
                     then Left zipper
                     else Right (zipper, moves)
+
+-- | Represents a move in the game, specifying the from, over, and to positions.
+data Move = Move { from :: Int, over :: Int, to :: Int } deriving (Show, Eq)
+
+-- | Determines if a starting game state has a solution using a hylomorphism.
+-- This function uses `foldT` and `unfoldT` to process the game tree generated from the initial state.
+--
+-- === __Parameters__
+-- * `initialState` - The initial game state represented as a `Zipper Peg`.
+--
+-- === __Returns__
+-- * `True` if the game state has a solution, `False` otherwise.
+--
+-- === __Examples__
+-- >>> hasSolution (fromJust $ toZipper [Peg, Peg, Empty, Peg])
+-- True
+--
+-- >>> hasSolution (fromJust $ toZipper [Peg, Empty, Peg, Peg])
+-- True
+--
+-- >>> hasSolution (fromJust $ toZipper [Empty, Empty, Peg, Empty])
+-- False
+--
+hasSolution :: Zipper Peg -> Bool
+hasSolution initialState = foldT fLeaf fNode (makeGameTree initialState)
+  where
+    fLeaf z = isWinning (fromZipper z)
+    fNode _ bs = or bs
+
+-- | Returns all possible winning end states as a hylomorphism.
+-- This function collects all winning end states from the game tree generated from the initial state.
+--
+-- === __Parameters__
+-- * `initialState` - The initial game state represented as a `Zipper Peg`.
+--
+-- === __Returns__
+-- * A list of game states (as `Pegs`) that are winning end states.
+--
+-- === __Examples__
+-- >>> allSolutions (fromJust $ toZipper [Peg, Peg, Empty, Peg])
+-- [[Empty, Empty, Empty, Peg]]
+--
+-- >>> allSolutions (fromJust $ toZipper [Peg, Peg, Peg])
+-- [[Empty, Empty, Peg], [Peg, Empty, Empty]]
+--
+allSolutions :: Zipper Peg -> [Pegs]
+allSolutions initialState = foldT fLeaf fNode (makeGameTree initialState)
+  where
+    fLeaf z = [fromZipper z | isWinning (fromZipper z)]
+    fNode _ bs = concat bs
+
+-- | Represents a tree structure that includes moves leading to each node.
+data MoveTree = MoveLeaf (Zipper Peg) | MoveNode (Zipper Peg) [(Move, MoveTree)] deriving (Show, Eq)
+
+-- | Calculates the index of the focus in the zipper.
+--
+-- === __Parameters__
+-- * `Zipper a` - The zipper to get the focus index from.
+--
+-- === __Returns__
+-- * The index of the focus element.
+--
+getFocusIndex :: Zipper a -> Int
+getFocusIndex (Zipper left _ _) = length left
+
+-- | Generates all possible moves from a given game state, along with the moves made.
+--
+-- This function is similar to `makeMoves`, but also returns the move that led to each new game state.
+--
+-- === __Parameters__
+-- * `zipper` - The current game state.
+--
+-- === __Returns__
+-- * A list of tuples containing the move made and the resulting game state.
+--
+makeMovesWithMoves :: Zipper Peg -> [(Move, Zipper Peg)]
+makeMovesWithMoves zipper = catMaybes (leftMoves ++ rightMoves)
+  where
+    leftMoves = unfoldr moveLeft (moveFocusToRight zipper)
+    rightMoves = unfoldr moveRight (moveFocusToLeft zipper)
+
+    moveLeft :: Zipper Peg -> Maybe (Maybe (Move, Zipper Peg), Zipper Peg)
+    moveLeft (Zipper (l1:l2:ls) focus rs)
+      | l2 == Empty && l1 == Peg  && focus == Peg =
+          let newZipper = Zipper (Empty:Peg:ls) Empty rs
+              focusIdx = getFocusIndex (Zipper (l1:l2:ls) focus rs)
+              move = Move { from = focusIdx, over = focusIdx -1, to = focusIdx -2 }
+          in Just (Just (move, newZipper), Zipper (l2:ls) l1 (focus:rs))
+      | otherwise = Just (Nothing, Zipper (l2:ls) l1 (focus:rs))
+    moveLeft _ = Nothing
+
+    moveRight :: Zipper Peg -> Maybe (Maybe (Move, Zipper Peg), Zipper Peg)
+    moveRight (Zipper ls focus (r1:r2:rs))
+      | r2 == Empty && r1 == Peg && focus == Peg =
+          let newZipper = Zipper ls Empty (Empty:Peg:rs)
+              focusIdx = getFocusIndex (Zipper ls focus (r1:r2:rs))
+              move = Move { from = focusIdx, over = focusIdx +1, to = focusIdx +2 }
+          in Just (Just (move, newZipper), Zipper (focus:ls) r1 (r2:rs))
+      | otherwise = Just (Nothing, Zipper (focus:ls) r1 (r2:rs))
+    moveRight _ = Nothing
+
+-- | Unfolds a move tree from a seed value.
+--
+-- === __Parameters__
+-- * `f` - Function that generates the next tree node from a seed value.
+-- * `x` - The seed value to start the tree generation.
+--
+-- === __Returns__
+-- * A move tree generated from the seed value.
+--
+unfoldMoveTree :: (b -> Either a (a, [(Move, b)])) -> b -> MoveTree
+unfoldMoveTree f x = case f x of
+    Left a -> MoveLeaf a
+    Right (a, bs) -> MoveNode a [ (move, unfoldMoveTree f b) | (move, b) <- bs ]
+
+-- | Generates the game tree with moves for a given initial state.
+-- The tree is generated using the `unfoldMoveTree` function, where each node represents a game state
+-- and its children represent the next possible game states that can be reached by making a valid move.
+--
+-- === __Parameters__
+-- * `initialState` - The initial game state represented as a `Zipper Peg`.
+--
+-- === __Returns__
+-- * A `MoveTree` representing all possible game states with moves from the initial state.
+--
+makeGameTreeWithMoves :: Zipper Peg -> MoveTree
+makeGameTreeWithMoves = unfoldMoveTree f
+  where
+    f :: Zipper Peg -> Either (Zipper Peg) (Zipper Peg, [(Move, Zipper Peg)])
+    f zipper =
+      let moves = makeMovesWithMoves zipper
+      in if null moves
+          then Left zipper
+          else Right (zipper, moves)
+
+-- | Retrieves a sequence of moves that leads to a winning state if one exists.
+--
+-- This function traverses the move tree to find a path to a winning state, collecting the moves along the way.
+--
+-- === __Parameters__
+-- * `initialState` - The initial game state represented as a `Zipper Peg`.
+--
+-- === __Returns__
+-- * `Just` a list of moves if a solution exists, `Nothing` otherwise.
+--
+-- === __Examples__
+-- >>> getSolution (fromJust $ toZipper [Peg, Peg, Empty, Peg])
+-- Just [Move {from = 3, over = 2, to = 1}, Move {from = 0, over = 1, to = 2}]
+--
+getSolution :: Zipper Peg -> Maybe [Move]
+getSolution initialState = dfs (makeGameTreeWithMoves initialState)
+  where
+    dfs :: MoveTree -> Maybe [Move]
+    dfs (MoveLeaf z)
+      | isWinning (fromZipper z) = Just []
+      | otherwise = Nothing
+    dfs (MoveNode _ branches) = listToMaybe [ move : path | (move, mt) <- branches, Just path <- [dfs mt] ]
+
+-- | Applies a move to the current game state.
+--
+-- === __Parameters__
+-- * `zipper` - The current game state as a `Zipper Peg`.
+-- * `move` - The move to apply.
+--
+-- === __Returns__
+-- * The new game state after applying the move.
+--
+applyMove :: Zipper Peg -> Move -> Zipper Peg
+applyMove zipper (Move fromIdx _ toIdx) =
+  let pegs = fromZipper zipper
+      updatedPegs = makeMove pegs (Move fromIdx undefined toIdx)
+      newZipper = fromJust $ toZipperAtIndex updatedPegs toIdx
+  in newZipper
+
+-- | Applies a move to a list of pegs.
+--
+-- === __Parameters__
+-- * `pegs` - The current list of pegs.
+-- * `move` - The move to apply.
+--
+-- === __Returns__
+-- * The new list of pegs after applying the move.
+--
+makeMove :: Pegs -> Move -> Pegs
+makeMove pegs (Move from over to) =
+  [ updatePeg i p | (i, p) <- zip [0..] pegs ]
+  where
+    updatePeg i p
+      | i == from = Empty
+      | i == over = Empty
+      | i == to   = Peg
+      | otherwise = p
+
+-- | Converts a list into a zipper with the focus at a specified index.
+--
+-- === __Parameters__
+-- * `pegs` - The list of pegs.
+-- * `idx` - The index to set as focus.
+--
+-- === __Returns__
+-- * `Just` zipper with focus at `idx` if valid, `Nothing` otherwise.
+--
+toZipperAtIndex :: [a] -> Int -> Maybe (Zipper a)
+toZipperAtIndex pegs idx
+  | idx < 0 || idx >= length pegs = Nothing
+  | otherwise =
+    let (left, focus:right) = splitAt idx pegs
+    in Just (Zipper (reverse left) focus right)
+
+-- | Tries a sequence of moves starting from the initial game state.
+--
+-- This function applies each move in the list to the game state and returns the final state.
+--
+-- === __Parameters__
+-- * `initialState` - The initial game state as a `Zipper Peg`.
+-- * `moves` - The list of moves to apply.
+--
+-- === __Returns__
+-- * The final game state after applying all moves.
+--
+-- === __Examples__
+-- >>> let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg]
+-- >>> let Just moves = getSolution initialState
+-- >>> fromZipper $ trySolution initialState moves
+-- [Empty,Empty,Empty,Peg]
+--
+trySolution :: Zipper Peg -> [Move] -> Zipper Peg
+trySolution initialState moves = foldl applyMove initialState moves
+
+
 hasSolution = error "Implement, document, and test this function"
 allSolutions = error "Implement, document, and test this function"
 getSolution = error "Implement, document, and test this function"
