@@ -219,6 +219,9 @@ main = hspec $ do
     it "should handle an empty game state" $ do
           makeMoves (Zipper [] Empty []) `shouldBe` []
 
+    it "should handle a game state with only one Peg element" $ do
+            makeMoves (Zipper [] Peg []) `shouldBe` []
+
     it "should handle a (non-empty) game state with no possible moves" $ do
         makeMoves (Zipper [Peg, Empty] Empty [Empty, Peg]) `shouldBe` []
 

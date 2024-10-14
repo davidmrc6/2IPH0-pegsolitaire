@@ -34,7 +34,7 @@ module PegSolitaire
 where
 import Data.List (unfoldr)
 import Data.Maybe
-import Data.Bits (Bits(xor), testBit)
+import Data.Bits (testBit)
 
 data Peg = Empty | Peg deriving (Eq, Ord)
 
