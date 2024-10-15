@@ -1,9 +1,9 @@
 {-|
 Module      : PegSolitaire
-Description :
+Description : Analyse a starting position of a Peg Solitaire game and determine if it is winning or not
+                by considering all possible moves.
 Copyright   : David Mereacre (1966561)
               Ryan Sindic (1957198)
-
 
 -}
 module PegSolitaire
@@ -30,12 +30,12 @@ module PegSolitaire
     allSolutions,
     getSolution,
     trySolution,
+    Move(..),
   )
 where
 import Data.List (unfoldr)
 import Data.Maybe
 import Data.Bits (testBit)
-import Debug.Trace (trace)
 
 data Peg = Empty | Peg deriving (Eq, Ord)
 
@@ -397,9 +397,6 @@ makeGameTree = unfoldT f
                     then Left zipper
                     else Right (zipper, moves)
 
--- | Represents a move in the game, specifying the from, over, and to positions.
-data Move = Move { from :: Int, over :: Int, to :: Int } deriving (Show, Eq)
-
 -- | Determines if a starting game state has a solution using a hylomorphism.
 -- This function uses `foldT` and `unfoldT` to process the game tree generated from the initial state.
 --
@@ -447,7 +444,14 @@ allSolutions = foldT fLeaf fNode . makeGameTree
     fLeaf z = [fromZipper z | isWinning (fromZipper z)]
     fNode _ = concat
 
+-----------------------------------------------------------------------------------------------------
+-- === BONUS Exercise
+-- The normal part of the assignment ends here. Up next, we have the bonus part of the assignment,
+-- which makes use of a few new data types and functions.
+-----------------------------------------------------------------------------------------------------
 
+-- | Represents a move in the game, specifying the from, over, and to positions.
+data Move = Move { from :: Int, over :: Int, to :: Int } deriving (Show, Eq)
 
 -- | Represents a tree structure that includes moves leading to each node.
 data MoveTree = MoveLeaf (Zipper Peg) | MoveNode (Zipper Peg) [(Move, MoveTree)]
@@ -546,7 +550,7 @@ makeGameTreeWithMoves = unfoldMoveTree f
 --
 -- === __Examples__
 -- >>> getSolution (fromJust $ toZipper [Peg, Peg, Empty, Peg])
--- Just [Move {from = 3, over = 2, to = 1}, Move {from = 0, over = 1, to = 2}]
+-- [Move {from = 0, over = 1, to = 2},Move {from = 3, over = 2, to = 1}]
 --
 getSolution :: Zipper Peg -> Maybe [Move]
 getSolution initialState = dfs (makeGameTreeWithMoves initialState)
@@ -567,9 +571,9 @@ getSolution initialState = dfs (makeGameTreeWithMoves initialState)
 -- * The new game state after applying the move.
 --
 applyMove :: Zipper Peg -> Move -> Zipper Peg
-applyMove zipper (Move fromIdx _ toIdx) =
+applyMove zipper (Move fromIdx overIdx toIdx) =
   let pegs = fromZipper zipper
-      updatedPegs = makeMove pegs (Move fromIdx undefined toIdx)
+      updatedPegs = makeMove pegs (Move fromIdx overIdx toIdx)
       newZipper = fromJust $ toZipperAtIndex updatedPegs toIdx
   in newZipper
 
@@ -583,14 +587,9 @@ applyMove zipper (Move fromIdx _ toIdx) =
 -- * The new list of pegs after applying the move.
 --
 makeMove :: Pegs -> Move -> Pegs
-makeMove pegs (Move from over to) =
-  [ updatePeg i p | (i, p) <- zip [0..] pegs ]
-  where
-    updatePeg i p
-      | i == from = Empty
-      | i == over = Empty
-      | i == to   = Peg
-      | otherwise = p
+makeMove pegs (Move fromIdx overIdx toIdx) =
+  [ if i == fromIdx || i == overIdx then Empty else if i == toIdx then Peg else p
+  | (i, p) <- zip [0..] pegs ]
 
 -- | Converts a list into a zipper with the focus at a specified index.
 --
@@ -605,8 +604,9 @@ toZipperAtIndex :: [a] -> Int -> Maybe (Zipper a)
 toZipperAtIndex pegs idx
   | idx < 0 || idx >= length pegs = Nothing
   | otherwise =
-    let (left, focus:right) = splitAt idx pegs
-    in Just (Zipper (reverse left) focus right)
+    case splitAt idx pegs of
+        (left, focus:right) -> Just (Zipper (reverse left) focus right)
+        _ -> Nothing
 
 -- | Tries a sequence of moves starting from the initial game state.
 --
@@ -623,7 +623,7 @@ toZipperAtIndex pegs idx
 -- >>> let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg]
 -- >>> let Just moves = getSolution initialState
 -- >>> fromZipper $ trySolution initialState moves
--- [Empty,Empty,Empty,Peg]
+--  .  X  .  .
 --
 trySolution :: Zipper Peg -> [Move] -> Zipper Peg
 trySolution = foldl applyMove

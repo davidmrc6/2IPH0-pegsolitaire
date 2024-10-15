@@ -344,5 +344,26 @@ main = hspec $ do
         allSolutions initialState `shouldBe` [[Peg]]
 
   describe "getSolution" $ do
-    it "should have tests" $ do
-          (1 :: Integer) `shouldBe` (1 :: Integer)
+    it "applies a sequence of moves to reach the final game state" $ do
+        let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg]
+        let moves = [Move 0 1 2, Move 3 2 1]
+        let finalState = trySolution initialState moves
+        fromZipper finalState `shouldBe` [Empty, Peg, Empty, Empty]
+
+    it "returns the initial state if no moves are applied" $ do
+        let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg]
+        let moves = []
+        let finalState = trySolution initialState moves
+        fromZipper finalState `shouldBe` [Peg, Peg, Empty, Peg]
+
+    it "handles a single move correctly" $ do
+        let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg]
+        let moves = [Move 0 1 2]
+        let finalState = trySolution initialState moves
+        fromZipper finalState `shouldBe` [Empty, Empty, Peg, Peg]
+
+    it "returns the correct state for a complex sequence of moves" $ do
+        let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg, Peg, Empty, Peg]
+        let moves = [Move 0 1 2, Move 3 2 1, Move 4 3 2, Move 6 5 4]
+        let finalState = trySolution initialState moves
+        fromZipper finalState `shouldBe` [Empty, Peg, Peg, Empty, Peg, Empty, Empty]
