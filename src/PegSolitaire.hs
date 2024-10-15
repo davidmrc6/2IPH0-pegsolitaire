@@ -29,12 +29,13 @@ module PegSolitaire
     hasSolution,
     allSolutions,
     getSolution,
-    trySolution,
+    trySolution
   )
 where
 import Data.List (unfoldr)
 import Data.Maybe
 import Data.Bits (testBit)
+import Debug.Trace (trace)
 
 data Peg = Empty | Peg deriving (Eq, Ord)
 
@@ -417,7 +418,7 @@ hasSolution :: Zipper Peg -> Bool
 hasSolution initialState = foldT fLeaf fNode (makeGameTree initialState)
   where
     fLeaf z = isWinning (fromZipper z)
-    fNode _ bs = or bs
+    fNode _ = or
 
 -- | Returns all possible winning end states as a hylomorphism.
 -- This function collects all winning end states from the game tree generated from the initial state.
@@ -439,10 +440,11 @@ allSolutions :: Zipper Peg -> [Pegs]
 allSolutions initialState = foldT fLeaf fNode (makeGameTree initialState)
   where
     fLeaf z = [fromZipper z | isWinning (fromZipper z)]
-    fNode _ bs = concat bs
+    fNode _ = concat
 
 -- | Represents a tree structure that includes moves leading to each node.
-data MoveTree = MoveLeaf (Zipper Peg) | MoveNode (Zipper Peg) [(Move, MoveTree)] deriving (Show, Eq)
+data MoveTree = MoveLeaf (Zipper Peg) | MoveNode (Zipper Peg) [(Move, MoveTree)]
+    deriving (Show, Eq)
 
 -- | Calculates the index of the focus in the zipper.
 --
@@ -500,9 +502,9 @@ makeMovesWithMoves zipper = catMaybes (leftMoves ++ rightMoves)
 -- === __Returns__
 -- * A move tree generated from the seed value.
 --
-unfoldMoveTree :: (b -> Either a (a, [(Move, b)])) -> b -> MoveTree
+unfoldMoveTree :: (b -> Either (Zipper Peg) (Zipper Peg, [(Move, b)])) -> b -> MoveTree
 unfoldMoveTree f x = case f x of
-    Left a -> MoveLeaf a
+    Left z -> MoveLeaf z
     Right (a, bs) -> MoveNode a [ (move, unfoldMoveTree f b) | (move, b) <- bs ]
 
 -- | Generates the game tree with moves for a given initial state.
@@ -617,10 +619,4 @@ toZipperAtIndex pegs idx
 -- [Empty,Empty,Empty,Peg]
 --
 trySolution :: Zipper Peg -> [Move] -> Zipper Peg
-trySolution initialState moves = foldl applyMove initialState moves
-
-
-hasSolution = error "Implement, document, and test this function"
-allSolutions = error "Implement, document, and test this function"
-getSolution = error "Implement, document, and test this function"
-trySolution = error "Implement, document, and test this function"
+trySolution = foldl applyMove

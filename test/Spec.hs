@@ -233,19 +233,56 @@ main = hspec $ do
 
     it "should make the right moves on a game with multiple reachable game stats" $ do
         map fromZipper (makeMoves (Zipper [Peg, Peg, Empty] Peg [Empty, Peg, Peg, Empty])) `shouldBe` [
-            [Empty, Peg, Peg, Peg, Peg, Empty, Empty, Empty],
-            [Peg, Empty, Empty, Peg, Empty, Peg, Peg, Empty],
-            [Empty, Peg, Empty, Empty, Peg, Peg, Peg, Empty],
-            [Empty, Peg, Peg, Peg, Empty, Empty, Empty, Peg]
+                [Empty, Peg, Peg, Peg, Peg, Empty, Empty, Empty],
+                [Peg, Empty, Empty, Peg, Empty, Peg, Peg, Empty],
+                [Empty, Peg, Empty, Empty, Peg, Peg, Peg, Empty],
+                [Empty, Peg, Peg, Peg, Empty, Empty, Empty, Peg]
             ]
 
   describe "unfoldT" $ do
-    it "should have tests" $ do
-          (1 :: Integer) `shouldBe` (1 :: Integer)
+        it "unfolds a tree from a seed value with a simple decrement function" $ do
+            let f x = if x == 0 then Left 0 else Right (x, [x-1])
+            unfoldT f 5 `shouldBe` Node 5 [Node 4 [Node 3 [Node 2 [Node 1 [Leaf 0]]]]]
+
+        it "unfolds a tree from a seed value with a binary tree function" $ do
+            let f x = if 2 * x + 1 > 7 then Left x else Right (x, [2 * x + 1, 2 * x + 2])
+            unfoldT f 1 `shouldBe` Node 1 [Node 3 [Leaf 7, Leaf 8], Leaf 4]
+
+        it "unfolds a tree from a seed value with a single node" $ do
+            let f = Left
+            unfoldT f 0 `shouldBe` Leaf 0
 
   describe "makeGameTree" $ do
-    it "should have tests" $ do
-          (1 :: Integer) `shouldBe` (1 :: Integer)
+    it "generates the correct game tree for a simple initial state" $ do
+        let initialState = Zipper [Peg, Peg] Empty []
+        let expectedTree = Node (Zipper [Peg, Peg] Empty [])
+                            [Leaf (Zipper [] Empty [Empty, Peg])]
+        let actualTree = makeGameTree initialState
+        actualTree `shouldBe` expectedTree
+
+    it "generates the correct game tree for a more complex initial state" $ do
+        let initialState = Zipper [Peg, Peg] Empty [Empty, Peg, Peg]
+        let expectedTree = Node (Zipper [] Peg [Peg, Empty, Empty, Peg, Peg])
+                                    [ Node (Zipper [] Empty [Peg, Empty, Peg, Peg, Empty])
+                                        [ Node (Zipper [] Empty [Empty, Peg, Peg, Empty, Empty])
+                                            [ Leaf (Zipper [] Empty [Peg, Empty, Empty, Empty, Empty])
+                                            , Leaf (Zipper [] Empty [Empty, Empty, Empty, Peg, Empty])
+                                            ]
+                                        ]
+                                    , Node (Zipper [] Empty [Empty, Peg, Empty, Peg, Peg])
+                                        [ Node (Zipper [] Empty [Peg, Peg, Empty, Empty, Empty])
+                                            [ Leaf (Zipper [] Empty [Peg, Empty, Empty, Empty, Empty])
+                                            , Leaf (Zipper [] Empty [Empty, Empty, Empty, Peg, Empty])
+                                            ]
+                                        ]
+                                    ]
+        makeGameTree initialState `shouldBe` expectedTree
+
+
+    it "generates an empty tree for an already solved state" $ do
+        let initialState = Zipper [Empty, Empty] Peg [Empty, Empty]
+        let expectedTree = Leaf (Zipper [Empty, Empty] Peg [Empty, Empty])
+        makeGameTree initialState `shouldBe` expectedTree
 
   describe "hasSolution" $ do
     it "should have tests" $ do
