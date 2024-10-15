@@ -290,6 +290,10 @@ main = hspec $ do
         let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg]
         hasSolution initialState `shouldBe` True
 
+    it "returns False for an unsolvable game state which initially has moves [Peg, Peg, Empty, Peg, Peg]" $ do
+        let initialState = Zipper [Peg, Peg] Empty [Peg, Peg]
+        hasSolution initialState `shouldBe` False
+
     it "returns True for a game state which is already winning" $ do
         let initialState = fromJust $ toZipper [Empty, Empty, Peg, Empty]
         hasSolution initialState `shouldBe` True
@@ -298,25 +302,46 @@ main = hspec $ do
         let initialState = fromJust $ toZipper [Peg, Empty, Peg, Empty]
         hasSolution initialState `shouldBe` False
 
-    it "should handle the empty list case" $ do
-            let pegs = []
-            isWinning pegs `shouldBe` False
-
     it "should return False for a full list of pegs but not a winning state" $ do
-            let pegs = [Peg, Peg, Peg, Peg]
-            isWinning pegs `shouldBe` False
+        let initialState = fromJust $ toZipper [Peg, Peg, Peg, Peg]
+        hasSolution initialState `shouldBe` False
 
     it "should return True for a single peg (winning state)" $ do
-            let pegs = [Peg]
-            isWinning pegs `shouldBe` True
+        let initialState = fromJust $ toZipper [Peg]
+        hasSolution initialState `shouldBe` True
 
     it "should return False when all pegs are in an empty state" $ do
-            let pegs = [Empty, Empty, Empty]
-            isWinning pegs `shouldBe` False
+        let initialState = fromJust $ toZipper [Empty, Empty, Empty]
+        hasSolution initialState `shouldBe` False
 
   describe "allSolutions" $ do
-    it "should have tests" $ do
-          (1 :: Integer) `shouldBe` (1 :: Integer)
+    it "should return an empty list when no solutions are possible on a simple game state" $ do
+        let initialState = fromJust $ toZipper [Empty, Peg, Empty, Peg]
+        allSolutions initialState `shouldBe` []
+
+    it "should return an empty list when no solutions are possible on a game state which has initial possible moves" $ do
+        let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg, Peg]
+        allSolutions initialState `shouldBe` []
+
+    it "should return the only possible solution for a simple game state" $ do
+        let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg]
+        allSolutions initialState `shouldBe` [[Empty, Peg, Empty, Empty]]
+
+    it "should return all possible solutions for a more complex game state" $ do
+        let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg, Empty]
+        allSolutions initialState `shouldBe` [[Empty, Peg, Empty, Empty, Empty], [Empty, Empty, Empty, Empty, Peg]]
+
+    it "should return the same list for a game state which is already winning" $ do
+        let initialState = fromJust $ toZipper [Empty, Empty, Peg, Empty]
+        allSolutions initialState `shouldBe` [[Empty, Empty, Peg, Empty]]
+
+    it "should return an empty list for a game state with just one empty space" $ do
+        let initialState = fromJust $ toZipper [Empty]
+        allSolutions initialState `shouldBe` []
+
+    it "should return a list of a Peg for a game state with just one Peg" $ do
+        let initialState = fromJust $ toZipper [Peg]
+        allSolutions initialState `shouldBe` [[Peg]]
 
   describe "getSolution" $ do
     it "should have tests" $ do

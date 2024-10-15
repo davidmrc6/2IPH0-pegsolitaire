@@ -120,6 +120,7 @@ foldT fLeaf fNode = go
 data Zipper a = Zipper [a] a [a]
     deriving (Eq)
 
+-- | Show instance for the `Zipper` data type.
 instance Show a => Show (Zipper a) where
     show (Zipper left focus right) =
         "Zipper [" ++ showList (reverse left) "" ++ "] " ++
@@ -435,16 +436,18 @@ hasSolution = foldT fLeaf fNode . makeGameTree
 --
 -- === __Examples__
 -- >>> allSolutions (fromJust $ toZipper [Peg, Peg, Empty, Peg])
--- [[Empty, Empty, Empty, Peg]]
+-- [ .  X  .  . ]
 --
 -- >>> allSolutions (fromJust $ toZipper [Peg, Peg, Peg])
--- [[Empty, Empty, Peg], [Peg, Empty, Empty]]
+-- []
 --
 allSolutions :: Zipper Peg -> [Pegs]
-allSolutions initialState = foldT fLeaf fNode (makeGameTree initialState)
+allSolutions = foldT fLeaf fNode . makeGameTree
   where
     fLeaf z = [fromZipper z | isWinning (fromZipper z)]
     fNode _ = concat
+
+
 
 -- | Represents a tree structure that includes moves leading to each node.
 data MoveTree = MoveLeaf (Zipper Peg) | MoveNode (Zipper Peg) [(Move, MoveTree)]
