@@ -262,17 +262,17 @@ main = hspec $ do
 
     it "generates the correct game tree for a more complex initial state" $ do
         let initialState = Zipper [Peg, Peg] Empty [Empty, Peg, Peg]
-        let expectedTree = Node (Zipper [] Peg [Peg, Empty, Empty, Peg, Peg])
-                                    [ Node (Zipper [] Empty [Peg, Empty, Peg, Peg, Empty])
+        let expectedTree = Node (Zipper [Peg, Peg] Empty [Empty, Peg, Peg])
+                                    [ Node (Zipper [Empty, Peg, Empty, Peg, Peg] Empty [])
                                         [ Node (Zipper [] Empty [Empty, Peg, Peg, Empty, Empty])
-                                            [ Leaf (Zipper [] Empty [Peg, Empty, Empty, Empty, Empty])
-                                            , Leaf (Zipper [] Empty [Empty, Empty, Empty, Peg, Empty])
+                                            [ Leaf (Zipper [Empty, Peg, Empty] Empty [Empty, Empty])
+                                            , Leaf (Zipper [Empty, Empty] Empty [Empty, Peg, Empty])
                                             ]
                                         ]
                                     , Node (Zipper [] Empty [Empty, Peg, Empty, Peg, Peg])
-                                        [ Node (Zipper [] Empty [Peg, Peg, Empty, Empty, Empty])
-                                            [ Leaf (Zipper [] Empty [Peg, Empty, Empty, Empty, Empty])
-                                            , Leaf (Zipper [] Empty [Empty, Empty, Empty, Peg, Empty])
+                                        [ Node (Zipper [Empty, Peg, Peg, Empty, Empty] Empty [])
+                                            [ Leaf (Zipper [Empty, Peg, Empty] Empty [Empty, Empty])
+                                            , Leaf (Zipper [Empty, Empty] Empty [Empty, Peg, Empty])
                                             ]
                                         ]
                                     ]

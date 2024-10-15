@@ -29,7 +29,7 @@ module PegSolitaire
     hasSolution,
     allSolutions,
     getSolution,
-    trySolution
+    trySolution,
   )
 where
 import Data.List (unfoldr)
@@ -118,9 +118,13 @@ foldT fLeaf fNode = go
 -- * The current focus item.
 -- * A list of elements to the right of the current focus.
 data Zipper a = Zipper [a] a [a]
-    deriving (Show, Eq)
+    deriving (Eq)
 
-
+instance Show a => Show (Zipper a) where
+    show (Zipper left focus right) =
+        "Zipper [" ++ showList (reverse left) "" ++ "] " ++
+        show focus ++
+        " [" ++ showList right "" ++ "]"
 
 -- | Convert a Zipper back to a list.
 -- This function takes a Zipper as an argument and returns its corresponding list by
@@ -388,7 +392,10 @@ makeGameTree = unfoldT f
         f :: Zipper Peg -> Either (Zipper Peg) (Zipper Peg, [Zipper Peg])
         f zipper =
             let moves = makeMoves zipper
-            in if null moves
+                debugInfo = "Current: " ++ show (fromZipper zipper) ++
+                            "\nMoves: " ++ show (map fromZipper moves)
+            in trace debugInfo $  -- This line adds debug output
+               if null moves
                     then Left zipper
                     else Right (zipper, moves)
 
