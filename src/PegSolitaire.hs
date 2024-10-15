@@ -392,10 +392,7 @@ makeGameTree = unfoldT f
         f :: Zipper Peg -> Either (Zipper Peg) (Zipper Peg, [Zipper Peg])
         f zipper =
             let moves = makeMoves zipper
-                debugInfo = "Current: " ++ show (fromZipper zipper) ++
-                            "\nMoves: " ++ show (map fromZipper moves)
-            in trace debugInfo $  -- This line adds debug output
-               if null moves
+            in if null moves
                     then Left zipper
                     else Right (zipper, moves)
 
@@ -418,11 +415,11 @@ data Move = Move { from :: Int, over :: Int, to :: Int } deriving (Show, Eq)
 -- >>> hasSolution (fromJust $ toZipper [Peg, Empty, Peg, Peg])
 -- True
 --
--- >>> hasSolution (fromJust $ toZipper [Empty, Empty, Peg, Empty])
+-- >>> hasSolution (fromJust $ toZipper [Peg, Empty, Peg, Empty])
 -- False
 --
 hasSolution :: Zipper Peg -> Bool
-hasSolution initialState = foldT fLeaf fNode (makeGameTree initialState)
+hasSolution = foldT fLeaf fNode . makeGameTree
   where
     fLeaf z = isWinning (fromZipper z)
     fNode _ = or

@@ -2,6 +2,7 @@ import           Test.Hspec
 import           Test.Hspec.QuickCheck
 import           Test.QuickCheck
 import           Control.Exception              ( evaluate )
+import           Data.Maybe                     ( fromJust )
 import PegSolitaire
 
 main :: IO ()
@@ -285,8 +286,33 @@ main = hspec $ do
         makeGameTree initialState `shouldBe` expectedTree
 
   describe "hasSolution" $ do
-    it "should have tests" $ do
-          (1 :: Integer) `shouldBe` (1 :: Integer)
+    it "returns True for a solvable game state [Peg, Peg, Empty, Peg]" $ do
+        let initialState = fromJust $ toZipper [Peg, Peg, Empty, Peg]
+        hasSolution initialState `shouldBe` True
+
+    it "returns True for a game state which is already winning" $ do
+        let initialState = fromJust $ toZipper [Empty, Empty, Peg, Empty]
+        hasSolution initialState `shouldBe` True
+
+    it "returns False for an unsolvable game state [Peg, Empty, Peg, Empty]" $ do
+        let initialState = fromJust $ toZipper [Peg, Empty, Peg, Empty]
+        hasSolution initialState `shouldBe` False
+
+    it "should handle the empty list case" $ do
+            let pegs = []
+            isWinning pegs `shouldBe` False
+
+    it "should return False for a full list of pegs but not a winning state" $ do
+            let pegs = [Peg, Peg, Peg, Peg]
+            isWinning pegs `shouldBe` False
+
+    it "should return True for a single peg (winning state)" $ do
+            let pegs = [Peg]
+            isWinning pegs `shouldBe` True
+
+    it "should return False when all pegs are in an empty state" $ do
+            let pegs = [Empty, Empty, Empty]
+            isWinning pegs `shouldBe` False
 
   describe "allSolutions" $ do
     it "should have tests" $ do
